@@ -1,0 +1,21 @@
+{
+  "name": "puff",
+  "version": "0.0.1",
+  "description": "Puff is function level programming for Javascripters who wish they were writing J.",
+  "main": "puff.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "function",
+    "level",
+    "functional",
+    "J",
+    "APL"
+  ],
+  "author": "Vincent Toups",
+  "license": "BSD-2-Clause",
+  "devDependencies": {
+    "gulp": "~3.9.0"
+  }
+}
