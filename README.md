@@ -25,11 +25,56 @@ For instance:
 	 }
 
 Uses the reverse function composition combinator (`r`) to compose
-three partially applied functions to normalize the signal `s` so that
-it is between zero and `h`.
+three partially applied functions (`p_` partially applies on the
+right, `_p` on the left) to normalize the signal `s` so that it is
+between zero and `h`.
 
-Puff lets you choose how much you want to ape the style of
-APL/J. Above, we calculated minVal and maxVal in the typical fashion,
-but we could also have written:
+The above example mixes Javascript style with function level
+programming (allowing a standard function definition to bind `s` and
+`h`).  We can choose how deep down the function level programming hole
+we want to go with `puff`:
 
-var normalizeToHeight = r(a,p_(cl, [r(first, min), r(first, max), first, second])
+	var normalizeToHeight = r(a,clo_({s:first,
+	                                 h:second,
+									 minVal:r(first, p_(reduce,min)),
+									 maxVal:r(first, p_(reduce,max)})),
+                              au(map, au(r,
+							             au_(minus, p_(ix, 'minVal')),
+										 au_(div,au_(minux, p_(ix, 'maxVal'), p_(ix, minVal))),
+										 au_(times, p_(ix, 'h'))),
+									 p_(ix, 's'));
+
+This is a bit much, though. It is instructive, nevertheless, to read the above:
+
+`r` introduces a composition - each argument is a function, each of
+which is applied in order from left to right.
+
+`a` returns all of its arguments as a single array.
+
+`clo_` (`cleaveObject_`) returns a function waiting for a single value
+and applies the functions at each key in the object provided to that
+value and returns the object constructed by assigning each result to
+its key.
+
+`clo_` is just `c_(clo)`, eg, `clo` curried rightways.
+
+`au` (`augment`) takes a function and returns a new function onto
+which argument wise composition has occured.  Eg:
+
+    au(function(a,b){return a+b}, first, second)
+
+Is equivalent to the function:
+
+	function(v){ return first(v)+second(v) };
+
+By the above definition we can see that `au` on `r` above gives us the
+composition of substracting that value stored at the `minVal` index,
+dividing that by the difference between that stored at `maxVal` and
+`minVal`.
+
+`map` is finally applied to the value at key `s`.
+
+If this seems kind of insane to you, well, that is function level
+programming.  Several new combinators would make the above more
+succinct: `aumap:_p(au,map)`, `aur:_p(au,r)` or even better:
+`aurap:_p(ap,_p(au,r))`.
