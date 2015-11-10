@@ -460,11 +460,25 @@ function slice(a,i,j){
 }
 
 function split(s,deli){
-    return s.split(deli);
+    if(typeof deli === 'undefined'){
+	var actualDeli = s;
+	return function(s){
+	    return s.split(actualDeli);
+	}
+    } else {
+	return s.split(deli);
+    }
 }
 
 function join(a, w){
-    return a.join(w);
+    if(typeof w === 'undefined'){
+	var actualW = a;
+	return function(a){
+	    return a.join(actualW);
+	}
+    } else {
+	return a.join(w);
+    }
 }
 
 function rest(a){
@@ -475,6 +489,59 @@ function last(a){
     return a[a.length-1];
 }
 
+function args(n){
+    if(typeof n !== 'number'){
+	throw new Error('args requires a numerical argument, got ', n);
+    }
+    return function(){
+	return Array.prototype.slice.call(arguments, 0, n);
+    }
+}
+
+function lambda(argCount){
+    return r.apply(null, [args(argCount)].concat(Array.prototype.slice.call(arguments, 1, arguments.length)));
+}
+
+function n0(a){ return a[0]; }
+function n00(a){ return a[0][0]; }
+function n000(a){ return a[0][0][0]; }
+function n001(a){ return a[0][0][1]; }
+function n002(a){ return a[0][0][2]; }
+function n01(a){ return a[0][1]; }
+function n010(a){ return a[0][1][0]; }
+function n011(a){ return a[0][1][1]; }
+function n012(a){ return a[0][1][2]; }
+function n02(a){ return a[0][2]; }
+function n020(a){ return a[0][2][0]; }
+function n021(a){ return a[0][2][1]; }
+function n022(a){ return a[0][2][2]; }
+function n1(a){ return a[1]; }
+function n10(a){ return a[1][0]; }
+function n100(a){ return a[1][0][0]; }
+function n101(a){ return a[1][0][1]; }
+function n102(a){ return a[1][0][2]; }
+function n11(a){ return a[1][1]; }
+function n110(a){ return a[1][1][0]; }
+function n111(a){ return a[1][1][1]; }
+function n112(a){ return a[1][1][2]; }
+function n12(a){ return a[1][2]; }
+function n120(a){ return a[1][2][0]; }
+function n121(a){ return a[1][2][1]; }
+function n122(a){ return a[1][2][2]; }
+function n2(a){ return a[2]; }
+function n20(a){ return a[2][0]; }
+function n200(a){ return a[2][0][0]; }
+function n201(a){ return a[2][0][1]; }
+function n202(a){ return a[2][0][2]; }
+function n21(a){ return a[2][1]; }
+function n210(a){ return a[2][1][0]; }
+function n211(a){ return a[2][1][1]; }
+function n212(a){ return a[2][1][2]; }
+function n22(a){ return a[2][2]; }
+function n220(a){ return a[2][2][0]; }
+function n221(a){ return a[2][2][1]; }
+function n222(a){ return a[2][2][2]; }
+
 var puff = {
     rest:rest,
     split:split,
@@ -483,6 +550,7 @@ var puff = {
     str:str,
     log:log,
     nth:ixc,
+    n:ixc,
     ixc:ixc, 
     nthc:ixc,
     first:first,
@@ -559,4 +627,46 @@ var puff = {
     sl:slice,
     toString:toString,
     last:last,
+    args:args,
+    lambda:lambda,
+    f:lambda,
+    n0:n0,
+    n00:n00,
+    n000:n000,
+    n001:n001,
+    n002:n002,
+    n01:n01,
+    n010:n010,
+    n011:n011,
+    n012:n012,
+    n02:n02,
+    n020:n020,
+    n021:n021,
+    n022:n022,
+    n1:n1,
+    n10:n10,
+    n100:n100,
+    n101:n101,
+    n102:n102,
+    n11:n11,
+    n110:n110,
+    n111:n111,
+    n112:n112,
+    n12:n12,
+    n120:n120,
+    n121:n121,
+    n122:n122,
+    n2:n2,
+    n20:n20,
+    n200:n200,
+    n201:n201,
+    n202:n202,
+    n21:n21,
+    n210:n210,
+    n211:n211,
+    n212:n212,
+    n22:n22,
+    n220:n220,
+    n221:n221,
+    n222:n222,
 };
