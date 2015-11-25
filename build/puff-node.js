@@ -35,6 +35,12 @@ function rCompose(){
     }
 }
 
+function rComposeOn(){
+    var initialValue = arguments[0];
+    var rest = Array.prototype.slice.call(arguments, 1, arguments.length);
+    return rCompose.apply(null, rest)(initialValue);
+}
+
 /** partially fix arguments to f (on the right)
  *
  */
@@ -56,7 +62,7 @@ function partialRight(f /*... fixedArgs */){
  */
 function curryRight(f){
     return function(){
-	return partialRight(f, Array.prototype.slice.call(arguments, 0, arguments.length));
+	return partialRight.apply(null, [f].concat(Array.prototype.slice.call(arguments, 0, arguments.length)));
     }
 }
 
@@ -81,7 +87,7 @@ function partialLeft(f /*... fixedArgs */){
  */
 function curryLeft(f){
     return function(){
-	return partialLeft(f, Array.prototype.slice.call(arguments, 0, arguments.length));
+	return partialLeft.apply(null, [f].call(Array.prototype.slice.call(arguments, 0, arguments.length)));
     }
 }
 
@@ -179,6 +185,81 @@ function map(f /*... arrays */){
 		out.push(f.apply(null, argHolder));
 	    }
 	    return out;
+	}
+    }
+}
+
+function threadAlong1(f,position){
+    return function(){
+	var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+	var threaded = args[position];
+	var n = threaded.length;
+	var out = [];
+	for(var i = 0; i < n; i = i + 1){
+	    args[position] = threaded[i];
+	    out.push(f.apply(null, args));
+	}
+	return out;
+    }
+}
+
+function threadAlong(f, nArgs){
+    for(var i = 0; i < nArgs; i = i + 1){
+	f = threadAlong1(f,i);
+    }
+    return f;
+}
+
+function crossMap(f){
+    var argLists = Array.prototype.slice.call(arguments, 1, arguments.length);
+    if(typeof f !== 'function'){
+	var realArgList = [f].concat(argLists);
+	return function(realF){
+	    return threadAlong(realF, realArgList.length).apply(null, realArgList);
+	}
+    } else if (typeof f === 'function' && argLists.length === 0){
+	return function(){
+	    var realArgList = Array.prototype.slice.call(arguments, 0, arguments.length);
+	    return threadAlong(f, realArgList.length).apply(null, realArgList);
+	}
+    } else {
+	return threadAlong(f,argLists.length).apply(null, argLists);
+    }
+}
+
+function cat(){
+    var args = Array.prototype.slice.call(arguments, 0, arguments.length);    
+    return Array.prototype.concat.apply([], args);
+}
+
+function mapcat(f){
+    var arrays = Array.prototype.slice.call(arguments, 1, arguments.length);
+    if(typeof f === 'function' && arrays.length === 0){
+	return function(){
+	    var arrays = Array.prototype.slice.call(arguments, 0, arguments.length);
+	    return mapcat.apply(null, [f].concat(arrays));
+	}
+    } else if (typeof f !== 'function') {
+	return function(g){
+	    return mapcat.apply(null, [g,f].concat(arrays));
+	}
+    } else {
+	var arrayCount = arrays.length;
+	if(arrayCount === 1){
+	    return cat.apply(null, arrays[0].map(function(el){
+		return f(el);
+	    }));
+	} else {
+	    var maxLen = largestLength(arrays);
+	    var out = [];
+	    var argHolder = initArray(arrayCount, undefined);
+	    for(var i = 0; i < maxLen; i = i + 1){
+		for(var j = 0; j < arrayCount; j = j + 1){
+		    argHolder[j] = arrays[j][i];
+		}
+		out.push(f.apply(null, argHolder));
+	    }
+	    return cat.apply(null, out);
 	}
     }
 }
@@ -470,6 +551,17 @@ function split(s,deli){
     }
 }
 
+function splitJoin(){
+    if(arguments.length === 3){
+	return arguments[0].split(arguments[1]).join(arguments[2]);
+    } else {
+	var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+	return function(s){
+	    return s.split(args[0]).join(args[1]);
+	}
+    }
+}
+
 function join(a, w){
     if(typeof w === 'undefined'){
 	var actualW = a;
@@ -589,6 +681,8 @@ var puff = {
     c:compose,
     rCompose:rCompose,
     r:rCompose,
+    rComposeOn:rComposeOn,
+    rOn:rComposeOn,
     partialLeft:partialLeft,
     _p:partialLeft,
     partialRight:partialRight,
@@ -605,6 +699,8 @@ var puff = {
     l:length,
     map:map,
     m:map,
+    crossMap:crossMap,
+    x:crossMap,
     reduce:reduce,
     rd:reduce,
     plus:plus,
@@ -630,6 +726,9 @@ var puff = {
     args:args,
     lambda:lambda,
     f:lambda,
+    splitJoin:splitJoin,
+    cat:cat,
+    mapcat:mapcat,
     n0:n0,
     n00:n00,
     n000:n000,
