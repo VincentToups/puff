@@ -1,0 +1,7 @@
+#!/usr/bin/env nodejs
+
+var repl = require('repl');
+require('./build/puff-node.js').pollute(global);
+
+repl.start({prompt:':puff:> ', terminal:false});
+

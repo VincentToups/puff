@@ -103,6 +103,7 @@ function index(o /* ... indexes */){
 	for(var i = 0; i < indexCount; i = i + 1){
 	    o = o[indexes[i]];
 	}
+	return o;
     }	
 }
 
@@ -143,9 +144,71 @@ function largestLength(as){
 function initArray(count, init){
     var a = [];
     for(var i = 0; i < count; i = i + 1){
-	a.push(i);
+	a.push(init);
     }
     return a;
+}
+
+function nextCellIndex(a, indexes){
+    var indexes = indexes.map(id);
+    var delta = indexes.length-1;
+    var subIndex = indexes.slice(0,delta);
+    var indexedArray = index.apply(null, [a].concat(subIndex));
+    var done = indexes[delta]+1 < indexedArray.length;
+    while(!done){
+	delta = delta -1;
+	if(delta<0){
+	    return null;
+	} else {
+	    indexedArray = index.apply(null, [a].concat(indexes.slice(0,delta)));
+	    done = indexes[delta]+1 < indexedArray.length;
+	    
+	}
+    }
+    indexes[delta] = indexes[delta]+1;
+    for(var i = delta+1; i<indexes.length; i = i + 1){
+	indexes[i] = 0;
+    }
+    return indexes;
+}
+
+function guessRank(a){
+    var rank = 0;
+    var done = false;
+    while(!done){
+	if(typeof a['length'] === 'number'){
+	    rank = rank + 1;
+	    a = a[0];
+        } else {
+            done = true;
+        }
+    }
+    return rank;
+}
+
+function cells(n, a){
+    if(n<0){
+	var nn = -n;
+	var out = [];
+	var indexes = initArray(nn,0);
+	while(indexes){
+	    out.push(index.apply(null, [a].concat(indexes)));
+	    indexes = nextCellIndex(a,indexes)
+	}
+	return out;
+    } else {
+	var rank = n-guessRank(a);
+	return cells(rank, a);
+    }
+}
+
+function rank(f){
+    var ranks = Array.prototype.slice.call(arguments,1,arguments.length);
+    return function(){
+	return map.apply(null,[f].concat(map(cells, 					     
+					     ranks,
+					     Array.prototype.slice.call(arguments,0,arguments.length))));
+    }
 }
 
 /** map f over arrays
@@ -406,6 +469,15 @@ function repeat(f,n,a){
     return a;
 }
 
+function repeatAccumulate(f,n,a){
+    var out = [a];
+    for(var i = 0; i < n; i = i + 1){
+	a = f(a);
+	out.push(a);
+    }
+    return out;
+}
+
 function cleave(v /*... fs*/){
     var fs = Array.prototype.slice.call(arguments, 1, arguments.length);
     return fs.map(function(f){
@@ -660,6 +732,8 @@ var puff = {
     clo_:cleaveObject_,
     repeat:repeat,
     rep:repeat,
+    repeatAccumulate:repeatAccumulate,
+    repAc:repeatAccumulate,
     twoArgs:twoArgs,
     plus2:plus2,
     minus2:minus2,
@@ -699,8 +773,11 @@ var puff = {
     l:length,
     map:map,
     m:map,
+    rank:rank,
+    ra:rank,
     crossMap:crossMap,
     x:crossMap,
+    cells:cells,
     reduce:reduce,
     rd:reduce,
     plus:plus,
@@ -729,6 +806,8 @@ var puff = {
     splitJoin:splitJoin,
     cat:cat,
     mapcat:mapcat,
+    nextCellIndex:nextCellIndex,
+    guessRank:guessRank,
     n0:n0,
     n00:n00,
     n000:n000,
