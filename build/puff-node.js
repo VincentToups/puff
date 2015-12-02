@@ -141,12 +141,67 @@ function largestLength(as){
     }, -Infinity);
 }
 
+function sort(a,crit){
+    if(arguments.length===1){
+	if(typeof a === 'function'){
+	    return function(actualArray){
+		return actualArray.map(id).sort(a);
+	    }
+	} else if(typeof a === 'string' || typeof a === 'number'){
+	    return function (actualArray){
+		return actualArray.map(id).sort(function(r,s){
+							   r = r[a];
+							   s = s[a];
+							   if(r<s) return -1;
+							   if(r>s) return 1;
+							   return 0;
+							   })
+	    };
+	} else {
+	    return function(actualCrit){
+		if(typeof actualCrit==='function'){
+		    return a.map(id).sort(actualCrit);
+		} else {
+		    return a.map(id).sort(function(r,s){
+			r = r[actualCrit];
+			s = s[actualCrit];
+			if(r<s) return -1;
+			if(r>s) return 1;
+			return 0;
+		    });
+		}
+	    }
+	}
+    } else {
+	return a.map(id).sort(typeof crit === 'function' ? crit :
+			      function(r,s){
+				  return a.sort(function(r,s){
+				      r = r[crit];
+				      s = s[crit];
+				      if(r<s) return -1;
+				      if(r>s) return 1;
+				      return 0;
+				  });
+			      });
+    }
+}
+
 function initArray(count, init){
     var a = [];
     for(var i = 0; i < count; i = i + 1){
 	a.push(init);
     }
     return a;
+}
+
+function shuffle(a){
+    return r(map(function(a){return [Math.random(),a]}),
+	     sort(0),
+	     map(second))(a);
+}
+
+function randomElement(a){
+    return a[Math.floor(Math.random()*a.length)];
 }
 
 function nextCellIndex(a, indexes){
@@ -187,6 +242,9 @@ function guessRank(a){
 }
 
 function cells(n, a){
+    if(!isFinite(n)){
+	return a;
+    }
     if(n<0){
 	var nn = -n;
 	var out = [];
@@ -707,6 +765,8 @@ function n221(a){ return a[2][2][1]; }
 function n222(a){ return a[2][2][2]; }
 
 var puff = {
+    sort:sort,
+    s:sort,
     rest:rest,
     split:split,
     join:join,
@@ -771,6 +831,10 @@ var puff = {
     b:bind,
     length:length,
     l:length,
+    shuffle:shuffle,
+    sh:shuffle,
+    randomElement:randomElement,
+    re:randomElement,
     map:map,
     m:map,
     rank:rank,
