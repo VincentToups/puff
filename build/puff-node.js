@@ -310,6 +310,23 @@ function map(f /*... arrays */){
     }
 }
 
+function filter(f,a){
+    if(arguments.length===1){
+	if(typeof f === 'function'){
+	    return function(a){
+		return a.filter(f);
+	    }
+	} else {
+	    var realA = f;
+	    return function(f){
+		return realA.filter(f);
+	    }
+	}
+    } else {
+	return a.filter(f);
+    }
+}
+
 function threadAlong1(f,position){
     return function(){
 	var args = Array.prototype.slice.call(arguments, 0, arguments.length);
@@ -836,6 +853,8 @@ var puff = {
     randomElement:randomElement,
     re:randomElement,
     map:map,
+    filter:filter,
+    fi:filter,
     m:map,
     rank:rank,
     ra:rank,
