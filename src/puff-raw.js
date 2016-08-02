@@ -900,7 +900,7 @@ function generateImportSnippet(puffObjectName,expressionDelimeter,justThese){
   return expressions.join(expressionDelimeter);
 }
 
-var puff = {
+var puffNames = {
     generateImportSnippet:"generateImportSnippet",
     sort:"sort",
     s:"sort",
