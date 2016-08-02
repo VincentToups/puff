@@ -62,3 +62,6 @@ tramp
 
 # cask packages
 .cask/
+
+build/puff-browser.js
+build/puff-node.js
