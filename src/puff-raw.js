@@ -900,7 +900,8 @@ function generateImportSnippet(puffObjectName,expressionDelimeter,justThese){
   return expressions.join(expressionDelimeter);
 }
 
-var puffNames = {
+var puff = {
+    generateImportSnippet:"generateImportSnippet",
     sort:"sort",
     s:"sort",
     rest:"rest",
@@ -1051,7 +1052,26 @@ var puffNames = {
     n220:"n220",
     n221:"n221",
     n222:"n222",
+    initArray:"initArray",
+    ia:"initArray",
+    oneArg:"oneArg",
+    f1:"oneArg",
+    twoArgs:"twoArgs",
+    f2:"twoArgs",
+    threeArgs:"threeArgs",
+    f3:"threeArgs",
+    callMethod:"callMethod",
+    md:"callMethod",
+    unique:"unique",
+    uniq:"unique",
+    groupBy:"groupBy",
+    gb:"groupBy",
+    ungroup:"ungroup",
+    ug:"ungroup",
+    unkey:"unkey",
+    uk:"unkey",
 };
+
 
 var puff = {
     generateImportSnippet:generateImportSnippet,

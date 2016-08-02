@@ -1,3 +1,5 @@
+var open = {value:"the-open-token"}
+
 /** compose functions
  *  return a new function which applies the last argument to compose
  *  to the values passed in and then applies each previous function
@@ -11,6 +13,7 @@ function compose(){
 	var res = fs[i].apply(null, inArgs);
 	i = i - 1;
 	for(; i>=0; i = i - 1){
+	    
 	    res = fs[i](res);
 	}
 	return res;
@@ -35,6 +38,11 @@ function rCompose(){
     }
 }
 
+
+
+/** apply the composition of the 1..n arguments to the 0th argumenxst.
+*
+*/
 function rComposeOn(){
     var initialValue = arguments[0];
     var rest = Array.prototype.slice.call(arguments, 1, arguments.length);
@@ -121,7 +129,7 @@ function reduce(f, a, init){
     if(typeof init === 'undefined'){
 	return a.reduce(f);
     } else {
-	return a.reduce(f, a, init);
+	return a.reduce(f, init);
     }
 }
 
@@ -189,7 +197,11 @@ function sort(a,crit){
 function initArray(count, init){
     var a = [];
     for(var i = 0; i < count; i = i + 1){
-	a.push(init);
+	if(typeof init === "function"){
+	    a.push(init(i));
+	} else {
+	    a.push(init);
+	}
     }
     return a;
 }
@@ -308,6 +320,66 @@ function map(f /*... arrays */){
 	    return out;
 	}
     }
+}
+
+function unique(elements, hash){
+    var hash = typeof hash === "undefined" ? id : hash;
+    var outTable = {};
+    var n = elements.length;
+    for(var i = 0; i < n; i = i + 1){
+	outTable[hash(elements[i])] = elements[i];
+    }
+    return Object.keys(outTable).map(function(k){
+	return outTable[k];
+    });
+}
+
+function groupBy(elements, hash){
+    var outTable = {};
+    var n = elements.length;
+    var k = undefined;
+    var col = undefined;
+    for(var i = 0; i < n; i = i + 1){
+	k = hash(elements[i]);
+	col = outTable[k] || [];
+	outTable[k] = col;
+	col.push(elements[i]);
+    }
+    return outTable;
+}
+
+function ungroupArray(a){
+    var an = a.length;
+    var out = [];
+    for(var ai = 0; ai < an; ai = ai + 1){
+	var s = a[ai];
+	var sn = s.length;
+	for(var si = 0; si < sn; si = si + 1){
+	    out.push(s[si]);
+	}
+    }
+    return out;
+}
+
+function ungroup(o){
+    if(o instanceof Array){
+	return ungroupArray(o);
+    }
+    var n = reduce(function(ac,it){
+	return ac+o[it].length;
+    },Object.keys(o),0);
+    var out = new Array(n);
+    var oi = 0;
+    Object.keys(o).forEach(function(k){
+	var subo = o[k];
+	var subn = subo.length;
+	var i = 0;
+	for(i=0;i<subn;i=i+1){
+	    out[oi]=subo[i];
+	    oi++;
+	}
+    });
+    return out;
 }
 
 function filter(f,a){
@@ -587,6 +659,11 @@ function cleaveObject_(o){
     }
 }
 
+/** Call the method METHOD of object OBJ with additional arguments. */
+function callMethod(obj,method /*args*/){
+    return obj[method].apply(obj,Array.prototype.slice.call(arguments,2,arguments.length));
+}
+
 /** given a function f and a additional functions gs
  *  return a new function h which applies each g
  *  to its single argument and then applies f to the 
@@ -602,6 +679,15 @@ function augment(f /*... gs*/){
     out.toString = function(){
 	return "augment("+f.toString()+","+gs.map(toString).join(", ")+")";
     }
+    return out;
+}
+
+function unkey(o){
+    var keys = Object.keys(o);
+    var out = new Array(keys.length);
+    keys.forEach(function(k,i){
+	out[i] = o[k];
+    });
     return out;
 }
 
@@ -709,6 +795,24 @@ function splitJoin(){
     }
 }
 
+function oneArg(f){
+    return function(a){
+	return f(a);
+    }
+}
+
+function twoArgs(f){
+    return function(a,b){
+	return f(a,b);
+    }
+}
+
+function threeArgs(f){
+    return function(a,b,c){
+	return f(a,b,c);
+    }
+}
+
 function join(a, w){
     if(typeof w === 'undefined'){
 	var actualW = a;
@@ -781,7 +885,176 @@ function n220(a){ return a[2][2][0]; }
 function n221(a){ return a[2][2][1]; }
 function n222(a){ return a[2][2][2]; }
 
+function generateImportSnippet(puffObjectName,expressionDelimeter,justThese){
+  expressionDelimeter = expressionDelimeter || " ";
+  var names = Object.keys(puffNames);
+  var valueNames = names.map(function(name){ return puffNames[name]});
+  justThese = justThese || valueNames;  
+  var expressions = [];
+  names.forEach(function(name,i){
+      var valueName = valueNames[i];
+      if(!(-1 === justThese.indexOf(valueName))){
+        expressions.push("var "+name+" = "+puffObjectName+"."+valueName+";");
+      }
+    });
+  return expressions.join(expressionDelimeter);
+}
+
+var puffNames = {
+    sort:"sort",
+    s:"sort",
+    rest:"rest",
+    split:"split",
+    join:"join",
+    trim:"trim",
+    str:"str",
+    log:"log",
+    nth:"ixc",
+    n:"ixc",
+    ixc:"ixc", 
+    nthc:"ixc",
+    first:"first",
+    second:"second",
+    third:"third",
+    fourth:"fourth",
+    id:"id",
+    cleave:"cleave",
+    cl:"cleave",
+    cleave_:"cleave_",
+    cl_:"cleave_",
+    cleaveObject:"cleaveObject",
+    clo:"cleaveObject",
+    cleaveObject_:"cleaveObject_",
+    clo_:"cleaveObject_",
+    repeat:"repeat",
+    rep:"repeat",
+    repeatAccumulate:"repeatAccumulate",
+    repAc:"repeatAccumulate",
+    twoArgs:"twoArgs",
+    plus2:"plus2",
+    minus2:"minus2",
+    times2:"times2",
+    div2:"div2",
+    min2:"min2",
+    max2:"max2",
+    apply:"apply",
+    ap:"apply",
+    call:"call",
+    ca:"call",
+    square:"square",
+    xx:"square",
+    initArray:"initArray",
+    ia:"initArray",
+    quad:"quad",
+    raiseTo:"raiseTo",
+    e:"raiseTo",
+    pollute:"pollute",
+    compose:"compose",
+    c:"compose",
+    rCompose:"rCompose",
+    r:"rCompose",
+    rComposeOn:"rComposeOn",
+    rOn:"rComposeOn",
+    partialLeft:"partialLeft",
+    _p:"partialLeft",
+    partialRight:"partialRight",
+    p_:"partialRight",
+    curryLeft:"curryLeft",
+    _c:"curryLeft",
+    curryRight:"curryRight",
+    c_:"curryRight",
+    index:"index",
+    ix:"index",
+    bind:"bind",
+    b:"bind",
+    length:"length",
+    l:"length",
+    shuffle:"shuffle",
+    sh:"shuffle",
+    randomElement:"randomElement",
+    re:"randomElement",
+    map:"map",
+    filter:"filter",
+    fi:"filter",
+    m:"map",
+    rank:"rank",
+    ra:"rank",
+    crossMap:"crossMap",
+    x:"crossMap",
+    cells:"cells",
+    reduce:"reduce",
+    rd:"reduce",
+    plus:"plus",
+    minus:"minus",
+    times:"times",
+    div:"div",
+    min:"min",
+    max:"max",
+    array:"array",
+    a:"array",
+    always:"always",
+    al:"always",
+    augment:"augment",
+    augmentLeft:"augmentLeft",
+    _au:"augmentLeft",
+    augmentRight:"augmentRight",
+    au_:"augmentRight",
+    au:"augment",
+    slice:"slice",
+    sl:"slice",
+    toString:"toString",
+    last:"last",
+    args:"args",
+    lambda:"lambda",
+    f:"lambda",
+    splitJoin:"splitJoin",
+    cat:"cat",
+    mapcat:"mapcat",
+    nextCellIndex:"nextCellIndex",
+    guessRank:"guessRank",
+    n0:"n0",
+    n00:"n00",
+    n000:"n000",
+    n001:"n001",
+    n002:"n002",
+    n01:"n01",
+    n010:"n010",
+    n011:"n011",
+    n012:"n012",
+    n02:"n02",
+    n020:"n020",
+    n021:"n021",
+    n022:"n022",
+    n1:"n1",
+    n10:"n10",
+    n100:"n100",
+    n101:"n101",
+    n102:"n102",
+    n11:"n11",
+    n110:"n110",
+    n111:"n111",
+    n112:"n112",
+    n12:"n12",
+    n120:"n120",
+    n121:"n121",
+    n122:"n122",
+    n2:"n2",
+    n20:"n20",
+    n200:"n200",
+    n201:"n201",
+    n202:"n202",
+    n21:"n21",
+    n210:"n210",
+    n211:"n211",
+    n212:"n212",
+    n22:"n22",
+    n220:"n220",
+    n221:"n221",
+    n222:"n222",
+};
+
 var puff = {
+    generateImportSnippet:generateImportSnippet,
     sort:sort,
     s:sort,
     rest:rest,
@@ -824,6 +1097,8 @@ var puff = {
     ca:call,
     square:square,
     xx:square,
+    initArray:initArray,
+    ia:initArray,
     quad:quad,
     raiseTo:raiseTo,
     e:raiseTo,
@@ -930,6 +1205,24 @@ var puff = {
     n220:n220,
     n221:n221,
     n222:n222,
+    initArray:initArray,
+    ia:initArray,
+    oneArg:oneArg,
+    f1:oneArg,
+    twoArgs:twoArgs,
+    f2:twoArgs,
+    threeArgs:threeArgs,
+    f3:threeArgs,
+    callMethod:callMethod,
+    md:callMethod,
+    unique:unique,
+    uniq:unique,
+    groupBy:groupBy,
+    gb:groupBy,
+    ungroup:ungroup,
+    ug:ungroup,
+    unkey:unkey,
+    uk:unkey
 };
 
 module.exports = puff;
