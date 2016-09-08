@@ -846,6 +846,22 @@ function lambda(argCount){
     return r.apply(null, [args(argCount)].concat(Array.prototype.slice.call(arguments, 1, arguments.length)));
 }
 
+function cascadeIntoOutput(/*args*/){
+  var objects = Array.prototype.slice.call(arguments, 0, arguments.length);
+  var n = objects.length;
+  return function(k){
+    var done = false;
+    var i = 0;    
+    while(!done && i < n){
+      if(k in objects[i]){
+        return objects[i][k];
+      }
+      i++;
+    }
+    return undefined;
+  };
+}
+
 function n0(a){ return a[0]; }
 function n00(a){ return a[0][0]; }
 function n000(a){ return a[0][0][0]; }
@@ -901,8 +917,10 @@ function generateImportSnippet(puffObjectName,expressionDelimeter,justThese){
   return expressions.join(expressionDelimeter);
 }
 
-var puff = {
+var puffNames = {
     generateImportSnippet:"generateImportSnippet",
+    cascadeIntoOutput:"cascadeIntoOutput",
+    cio:"cascadeIntoOutput",
     sort:"sort",
     s:"sort",
     rest:"rest",
@@ -1076,6 +1094,8 @@ var puff = {
 
 var puff = {
     generateImportSnippet:generateImportSnippet,
+    cascadeIntoOutput:cascadeIntoOutput,
+    cio:cascadeIntoOutput,
     sort:sort,
     s:sort,
     rest:rest,
