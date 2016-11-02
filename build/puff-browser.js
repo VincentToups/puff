@@ -849,17 +849,55 @@ function lambda(argCount){
 function cascadeIntoOutput(/*args*/){
   var objects = Array.prototype.slice.call(arguments, 0, arguments.length);
   var n = objects.length;
-  return function(k){
-    var done = false;
-    var i = 0;    
-    while(!done && i < n){
-      if(k in objects[i]){
-        return objects[i][k];
-      }
-      i++;
+    return function(k){
+        if(typeof k === "undefined"){
+            return listKeys();
+        } else if (typeof k === "function") {
+            if(arguments.length === 2){
+                return forEachFiltered(arguments[0], arguments[1]);
+            } else {
+                return forEach(arguments[0]);
+            }
+            return undefined;
+        }
+        else {
+            return index(k);
+        }
+    };
+    function index(k){
+        var done = false;
+        var i = 0;    
+        while(!done && i < n){
+            if(k in objects[i]){
+                return objects[i][k];
+            }
+            i++;
+        }
+        return undefined;
     }
-    return undefined;
-  };
+    function listKeys(){
+        var keys = {};
+        var o = undefined;
+        for(var i = 0; i<objects.length;i++){
+            o = objects[i];
+            Object.keys(o).forEach(function(k){
+                keys[k] = true;
+            });
+        }
+        return Object.keys(keys).sort();
+    }
+    function forEachFiltered(filter, op){
+        var keys = listKeys();
+        keys.forEach(function(k){
+            var val = index(k);
+            if(filter(k,val)){
+                op(k,val);
+            }
+        });
+    }
+    function forEach(op){
+        forEachFiltered(always(true), op);
+    }
 }
 
 function n0(a){ return a[0]; }
